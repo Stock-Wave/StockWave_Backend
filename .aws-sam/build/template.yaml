@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: StockWave API - ASP.NET Core con Controllers en AWS Lambda + PostgreSQL
+  en VPS
+Parameters:
+  DbConnectionString:
+    Type: String
+    NoEcho: true
+    Description: "Cadena de conexi\xF3n completa a PostgreSQL en el VPS"
+Globals:
+  Function:
+    Timeout: 15
+    MemorySize: 256
+    Runtime: dotnet8
+    Environment:
+      Variables:
+        STOCKWAVE_DB_CONNECTION:
+          Ref: DbConnectionString
+Resources:
+  StockWaveApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: StockWaveApiFunction
+      Handler: StockWaveApi
+      Events:
+        RootApi:
+          Type: Api
+          Properties:
+            Path: /
+            Method: ANY
+        ProxyApi:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+    Metadata:
+      SamResourceId: StockWaveApiFunction
+Outputs:
+  ApiUrl:
+    Description: "URL p\xFAblica de la API"
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod
